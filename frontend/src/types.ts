@@ -1,0 +1,11 @@
+export type Resource = { id: string; name: string; folder: string; group: string; size: number; extension: string };
+export type Dataset = { id: string; file_id: string; name: string; sha256: string; created_at: string; row_count: number; duplicate?: boolean; metadata: { coordinates: number; encoding?: string; delimiter?: string; selected_sheet: string; available_sheets: string[]; warnings: string[]; sheets: { header_row?: number; columns?: string[]; accepted?: number }[] } };
+export type EventRecord = { id: number; subject: string; kind: string; number_a: string; number_b: string; timestamp: string; duration: number | null; imei: string; latitude: number | null; longitude: number | null; azimuth: number | null; raw: { sheet: string; row: number; values: Record<string, string> } };
+export type Stats = { total: number; unique_numbers: number; geographic_events: number; duration_seconds: number | null; durations_known: number; first_event: string | null; last_event: string | null; kinds: { kind: string; count: number }[]; daily: { date: string; count: number }[] };
+export type Overview = { datasets: number; events: number; geographic_events: number; sources: number; evidence: number; dossiers: number; recent: { action: string; created_at: string }[] };
+export type Evidence = { id: string; name: string; sha256: string; size: number; created_at: string };
+export type Source = { id: string; title: string; url: string | null; description: string; observed_at: string | null; notes: string; created_at: string; source_type: 'web' | 'local_reference'; document_type: string; provenance: string; verification_status: 'integridad_comprobada' | 'pendiente'; is_demo: boolean; evidence: Evidence[] };
+export type Dossier = { id: string; title: string; fields: Record<string, string>; file_id: string | null; extracted_text: string; reviewed: boolean; demo: boolean; updated_at: string; missing: string[] };
+export type Filters = { number: string; kind: string; date_from: string; date_to: string };
+export type GeoEvent = Pick<EventRecord, 'id' | 'subject' | 'kind' | 'timestamp' | 'latitude' | 'longitude' | 'azimuth'>;
+export type GeoData = { items: GeoEvent[]; antennas: { latitude: number; longitude: number; azimuth: number | null; connections: number; observed_lines: number }[]; total: number; limit: number; truncated: boolean; notice: string };

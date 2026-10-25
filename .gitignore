@@ -1,0 +1,15 @@
+.venv/
+node_modules/
+frontend/dist/
+data/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.log
+*.pid
+.env
+test-results/
+playwright-report/
+frontend/.vite/
+hakathon-*.zip
+*.tsbuildinfo

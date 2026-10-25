@@ -1,0 +1,24 @@
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { ArrowRight, Eye, EyeOff, KeyRound, LoaderCircle, LockKeyhole, Moon, RefreshCw, ShieldCheck, Sun, UserRound } from 'lucide-react';
+import { api } from '../api';
+import { useAuth, type LoginChallenge } from '../auth';
+import { Notice } from '../components/ui';
+
+export default function Login() {
+  const { login, notice } = useAuth(); const [username, setUsername] = useState(''); const [password, setPassword] = useState(''); const [visible, setVisible] = useState(false);
+  const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [setup, setSetup] = useState<boolean | null>(null); const [revision, setRevision] = useState(0);
+  const [theme, setTheme] = useState(() => localStorage.getItem('centinela-theme') || 'dark'); const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem('centinela-theme', theme); }, [theme]);
+  useEffect(() => {
+    const controller = new AbortController(); setError('');
+    api<LoginChallenge>('/auth/csrf', { signal: controller.signal }).then(value => setSetup(value.setup_required)).catch(e => { if (e.name !== 'AbortError') setError(e.message); });
+    return () => controller.abort();
+  }, [revision]);
+  async function submit(event: FormEvent) {
+    event.preventDefault(); setError(''); setBusy(true);
+    try { await login(username, password); setPassword(''); }
+    catch (error) { setError(error instanceof Error ? error.message : 'No se pudo iniciar sesión. Intenta nuevamente.'); setPassword(''); setTimeout(() => errorRef.current?.focus(), 0); }
+    finally { setBusy(false); }
+  }
+  return <main className="auth-page" id="inicio-sesion"><button className="icon-button auth-theme" aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'} onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <Sun size={20}/> : <Moon size={20}/>}</button><div className="auth-container"><div className="auth-brand"><img src="/centinela-logo.webp" width={120} height={120} alt="Logotipo oficial de Centinela 360"/><span className="eyebrow">ACCESO AL ESPACIO DE TRABAJO</span><h1>Centinela <span>360</span></h1><p>Tu información, en un entorno de acceso controlado.</p></div><section className="auth-card" aria-labelledby="login-title"><div className="auth-card-heading"><span className="auth-key"><KeyRound size={21}/></span><div><h2 id="login-title">Inicia sesión</h2><p>Ingresa con tu cuenta autorizada.</p></div></div>{notice && <Notice>{notice}</Notice>}{setup && <Notice>Configura el primer administrador desde esta computadora: ejecuta <code>crear-administrador.cmd</code> y elige tus datos de acceso. Después pulsa “Comprobar configuración”.</Notice>}<div ref={errorRef} tabIndex={-1} className="auth-error" aria-live="assertive">{error && <Notice error>{error}</Notice>}</div><form onSubmit={submit} className="form-stack" aria-busy={busy}><label className="field"><span>Nombre de usuario</span><div className="auth-input"><UserRound size={19} aria-hidden="true"/><input name="username" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} required maxLength={100} placeholder="Escribe tu usuario" value={username} disabled={busy || setup === true} onChange={e => setUsername(e.target.value)}/></div></label><label className="field"><span>Contraseña</span><div className="auth-input password-input"><LockKeyhole size={19} aria-hidden="true"/><input name="password" type={visible ? 'text' : 'password'} autoComplete="current-password" required maxLength={1024} placeholder="Escribe tu contraseña" value={password} disabled={busy || setup === true} onChange={e => setPassword(e.target.value)}/><button className="icon-button" type="button" aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'} aria-pressed={visible} onClick={() => setVisible(v => !v)}>{visible ? <EyeOff size={20}/> : <Eye size={20}/>}</button></div></label><button className="button primary full auth-submit" disabled={busy || setup !== false} type="submit">{busy ? <><LoaderCircle className="spinner" size={19}/>Verificando acceso…</> : <>Iniciar sesión<ArrowRight size={19}/></>}</button>{(setup || setup === null) && <button className="button secondary full" type="button" disabled={busy} onClick={() => setRevision(v => v + 1)}><RefreshCw size={17}/>Comprobar configuración</button>}</form><div className="auth-assistance"><ShieldCheck size={17}/><p>El acceso está reservado a usuarios autorizados. Si necesitas una cuenta o recuperar el acceso, contacta a tu administrador.</p></div></section><footer className="auth-footer"><LockKeyhole size={14}/><span>Centinela 360 · Documentos locales y acceso protegido</span></footer></div></main>;
+}
